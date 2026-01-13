@@ -47,7 +47,7 @@ Designed for **performance**, **accuracy**, and **usability**, with SIMD acceler
 
 ### Compile
 ```bash
-gcc crc.c -O3 -march=native -Wall -Wextra -msse4.2 -pthread -o crc
+gcc crc.c -O3 -march=native -Wall -Wextra -msse4.2 -pthread -DCOMPILER_FLAGS="\"-O3 -march=native -Wall -Wextra -msse4.2 -pthread\"" -o crc
 ```
 ### Usage
 After successful compilation, you can use the program as-is. Run it with the following command:

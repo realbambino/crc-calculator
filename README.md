@@ -49,6 +49,8 @@ Designed for **performance**, **accuracy**, and **usability**, with SIMD acceler
 ```bash
 gcc crc.c -O3 -march=native -Wall -Wextra -msse4.2 -pthread -o crc
 ```
+---
+
 ## 🧰 Options
 ### Hash selection
 | Option            | Description |
@@ -66,6 +68,8 @@ gcc crc.c -O3 -march=native -Wall -Wextra -msse4.2 -pthread -o crc
 | `--single`, `-s`    | Single-pass mode (fast, one file scan) |
 | `--benchmark`, `-b` | Benchmark all hashes                   |
 
+---
+
 ## 📊 Benchmark Mode
 
 Benchmark mode measures:
@@ -79,6 +83,8 @@ CRC-64: 0C0C26F38D09AFBE @ 364.64 MB/s (0.138639 s)
 xxH64 : 9A04426746F0D380 @ 678.18 MB/s (0.074542 s)
 xxH128: 8EDA8E37839113119A04426746F0D380 @ 50552.80 MB/s (0.000001 s)
 ```
+
+---
 
 ## 📈 Single-Pass Mode (`-s`)
 
@@ -106,6 +112,8 @@ crc -a -s largefile.iso
 ### Memory
 - File is memory-mapped (`mmap`) for maximum throughput
 
+---
+
 ## 🎨 Color Coding
 | Color  | Meaning            |
 | ------ | ------------------ |
@@ -114,15 +122,17 @@ crc -a -s largefile.iso
 | Yellow | Timing             |
 | Red    | Errors             |
 
+---
+
 ## 📄 License
 
-Copyright © 2026 Ino Jacob
-All rights reserved.
+Copyright © 2026 Ino Jacob. All rights reserved.
+
+---
 
 ## 🤝 Contributing
 
-Contributions, performance improvements, and new hash algorithms are welcome.
-Please submit pull requests or open issues.
+Contributions, performance improvements, and new hash algorithms are welcome. Please submit pull requests or open issues.
 
 ## ⭐ Notes
 - Designed for large files.

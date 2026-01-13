@@ -32,8 +32,8 @@ Revision History:
 -Added combinations for the hashes
 
 0.6
--Added performance mode to calculate hash
-    When -p (or --benchmark) is enabled:    
+-Added performance/single pass mode to calculate hash
+    When -s (or --benchmark) is enabled:    
         -The file is read once
         -All enabled hashes are updated in the same loop
         -No rewind()
@@ -106,6 +106,10 @@ Revision History:
 0.16
 -Fix compiler CRC error
 
+0.17
+-Added CPU Family information in the Debug screen
+-Added CPU Instructions information in the Debug screen
+
 Compilation:
 
     gcc crc.c -O3 -msse4.2 -pthread -o crc
@@ -132,7 +136,7 @@ Compilation:
 #include <sys/utsname.h>
 
 /* ================= CONFIG ================= */
-#define VERSION "0.14"
+#define VERSION "0.17"
 #define BUILD_DATE __DATE__ " " __TIME__
 
 /* ================= ANSI COLORS ================= */
@@ -188,6 +192,91 @@ void init_crc16(void) {
 
         crc16_table[i] = crc;
     }
+}
+
+/* ================= CPU FLAGS FUNCTION ================= */
+static int cpu_has_flag(const char *flag) {
+    FILE *f = fopen("/proc/cpuinfo", "r");
+    if (!f) return 0;
+
+    char line[4096];
+    int found = 0;
+
+    while (fgets(line, sizeof(line), f)) {
+        if (strncmp(line, "flags", 5) == 0) {
+            if (strstr(line, flag)) {
+                found = 1;
+                break;
+            }
+        }
+    }
+
+    fclose(f);
+    return found;
+}
+
+/* ================= CPU FAMILY FUNCTION ================= */
+static void get_cpu_family_model(int *family, int *model, char *vendor, size_t vlen) {
+    FILE *f = fopen("/proc/cpuinfo", "r");
+    if (!f) return;
+
+    char line[256];
+
+    while (fgets(line, sizeof(line), f)) {
+        if (strncmp(line, "vendor_id", 9) == 0) {
+            sscanf(line, "vendor_id : %31s", vendor);
+            vendor[vlen - 1] = '\0';  // hard safety clamp
+        }
+        else if (strncmp(line, "cpu family", 10) == 0) {
+            sscanf(line, "cpu family : %d", family);
+        }
+        else if (strncmp(line, "model\t", 6) == 0) {
+            sscanf(line, "model\t: %d", model);
+        }
+    }
+
+    fclose(f);
+}
+
+/* ================= CPU FAMILY DETECTION FUNCTION ================= */
+static const char *detect_microarch(const char *vendor, int family, int model) {
+
+    /* ---------- Intel ---------- */
+    if (!strcmp(vendor, "GenuineIntel") && family == 6) {
+        switch (model) {
+            case 60: case 69: case 70:
+                return "Haswell";
+            case 61: case 71:
+                return "Broadwell";
+            case 78: case 94:
+                return "Skylake";
+            case 142: case 158:
+                return "Kaby Lake / Coffee Lake";
+            case 165: case 166:
+                return "Comet Lake";
+            case 151:
+                return "Ice Lake";
+            case 154:
+                return "Tiger Lake";
+            case 183:
+                return "Alder Lake";
+            case 186:
+                return "Raptor Lake";
+        }
+    }
+
+    /* ---------- AMD ---------- */
+    if (!strcmp(vendor, "AuthenticAMD") && family == 23) {
+        if (model <= 1) return "Zen";
+        if (model <= 8) return "Zen+";
+        if (model <= 17) return "Zen 2";
+        return "Zen 3 / Zen 4";
+    }
+
+    if (!strcmp(vendor, "AuthenticAMD") && family == 25)
+        return "Zen 3 / Zen 4";
+
+    return "Unknown";
 }
 
 /* ================= DEBUG FUNCTION ================= */
@@ -285,7 +374,32 @@ printf(C_GREEN "GPU       : " C_RESET "%s\n", gpu);
         }
         fclose(f);
     }
-    printf(C_GREEN "RAM       : " C_RESET "%.2f GB\n\n", ram_kb / 1024.0 / 1024.0);
+    printf(C_GREEN "RAM       : " C_RESET "%.2f GB\n", ram_kb / 1024.0 / 1024.0);
+
+    printf("\nAdvanced Instructions:\n");
+
+    int family = -1, model = -1;
+    char vendor[32] = "Unknown";
+
+    get_cpu_family_model(&family, &model, vendor, sizeof(vendor));
+
+    const char *arch = detect_microarch(vendor, family, model);
+
+    printf(C_GREEN "CPU Family: " C_ORANGE "%s" C_RESET "\n", arch);
+
+    printf(C_GREEN "SSE4.2    : %s\n",
+        cpu_has_flag("sse4_2") ? C_PURPLE "yes" C_RESET : C_RED "no" C_RESET);
+
+    printf(C_GREEN "AVX/AVX2  : %s/%s\n",
+        cpu_has_flag("avx")  ? C_PURPLE "yes" C_RESET : C_RED "no" C_RESET,
+        cpu_has_flag("avx2") ? C_PURPLE "yes" C_RESET : C_RED "no" C_RESET);
+
+    printf(C_GREEN "BMI/BMI2  : %s/%s\n",
+        cpu_has_flag("bmi1") ? C_PURPLE "yes" C_RESET : C_RED "no" C_RESET,
+        cpu_has_flag("bmi2") ? C_PURPLE "yes" C_RESET : C_RED "no" C_RESET);
+
+    printf(C_GREEN "FMA       : %s\n",
+        cpu_has_flag("fma") ? C_PURPLE "yes" C_RESET : C_RED "no" C_RESET);
 }
 
 /* ================= xxHash CONSTANTS ================= */

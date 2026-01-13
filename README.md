@@ -47,7 +47,7 @@ Designed for **performance**, **accuracy**, and **usability**, with SIMD acceler
 
 ### Compile
 ```bash
-gcc -O3 -march=native -Wall -Wextra crc.c -o crc
+gcc crc.c -O3 -march=native -Wall -Wextra -msse4.2 -pthread -o crc
 ```
 ## 🧰 Options
 ### Hash selection

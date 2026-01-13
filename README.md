@@ -110,7 +110,7 @@ crc -a -s largefile.iso
 - Avoids `clock()` inaccuracies on long runs.
 
 ### Memory
-- File is memory-mapped (`mmap`) for maximum throughput
+- File is memory-mapped (`mmap`) for maximum throughput.
 
 ---
 
@@ -125,13 +125,9 @@ crc -a -s largefile.iso
 ---
 
 ## 📄 License
-
 Copyright © 2026 Ino Jacob. All rights reserved.
 
----
-
 ## 🤝 Contributing
-
 Contributions, performance improvements, and new hash algorithms are welcome. Please submit pull requests or open issues.
 
 ## ⭐ Notes

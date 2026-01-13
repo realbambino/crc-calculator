@@ -38,7 +38,7 @@ Designed for **performance**, **accuracy**, and **usability**, with SIMD acceler
 
 ---
 
-## 📦 Build
+## 📦 Build and Usage
 
 ### Requirements
 - Linux (tested on modern distributions).
@@ -49,6 +49,16 @@ Designed for **performance**, **accuracy**, and **usability**, with SIMD acceler
 ```bash
 gcc crc.c -O3 -march=native -Wall -Wextra -msse4.2 -pthread -o crc
 ```
+### Usage
+After successful compilation, you can use the program as-is. Run it with the following command:
+```bash
+./crc large_iso.iso
+```
+Alternatively, you can copy the binary to `/usr/local/bin` or `/usr/local/sbin` if you want to use it system-wide. Use the following command to copy the binary (in this case to `/usr/local/sbin`):
+```bash
+sudo cp crc /usr/local/sbin
+```
+
 ---
 
 ## 🧰 Options

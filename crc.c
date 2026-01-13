@@ -1,6 +1,6 @@
 /*
 
-CRC Checker. Copyright (C) 2026 Ino Jacob. All rights reseerved.
+CRC Checker. Copyright (C) 2026 Ino Jacob. All rights reserved.
 
 Supports:
 - CRC-16 (CCITT)

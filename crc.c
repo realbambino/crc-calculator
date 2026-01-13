@@ -103,9 +103,16 @@ Revision History:
 0.15
 -Added more colors to use
 
+0.16
+-Fix compiler CRC error
+
 Compilation:
 
     gcc crc.c -O3 -msse4.2 -pthread -o crc
+
+    or
+
+    gcc crc.c -O3 -march=native -Wall -Wextra -msse4.2 -pthread -o crc
 
 */
 
@@ -173,7 +180,12 @@ void init_crc16(void) {
     for (int i = 0; i < 256; i++) {
         uint16_t crc = i << 8;
         for (int j = 0; j < 8; j++)
-            crc = (crc & 0x8000) ? (crc << 1) ^ CRC16_POLY : crc << 1;
+            crc = (uint16_t)(
+                (crc & 0x8000u)
+                ? ((crc << 1) ^ (uint16_t)CRC16_POLY)
+                : (crc << 1)
+            );
+
         crc16_table[i] = crc;
     }
 }

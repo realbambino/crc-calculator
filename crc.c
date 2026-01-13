@@ -110,13 +110,33 @@ Revision History:
 -Added CPU Family information in the Debug screen
 -Added CPU Instructions information in the Debug screen
 
+0.18
+-Added Compiler flags information in the Debug screen, this is added when compiling the program
+-Added Compiler name used & which version
+-Added LTO (Link-Time Optimization) Detection
+    -Works with -flto
+    -Works with ThinLTO
+    -No false positives
+-Added PGO (Profile-Guided Optimization) Detection
+    -GCC & Clang compatible
+    -Exact phase detection
+-Added Target Triple Detection (Architecture–Vendor–OS)
+    -No runtime commands
+    -Works for cross-compilation
+    -Exact ABI match
+-Added "-flto" to compiler flag
+
 Compilation:
 
     gcc crc.c -O3 -msse4.2 -pthread -o crc
 
-    or
+    or,
 
     gcc crc.c -O3 -march=native -Wall -Wextra -msse4.2 -pthread -o crc
+
+    or if you want to add compiler flag to the debug screen,
+
+    gcc crc.c -O3 -march=native -flto -Wall -Wextra -msse4.2 -pthread -DCOMPILER_FLAGS="\"-O3 -march=native -flto -Wall -Wextra -msse4.2 -pthread\"" -o crc
 
 */
 
@@ -135,8 +155,64 @@ Compilation:
 #include <sys/time.h>
 #include <sys/utsname.h>
 
+/* ================= COMPILER INFO ================= */
+#if defined(__clang__)
+    #define COMPILER_NAME    "Clang"
+    #define COMPILER_VERSION __clang_version__
+#elif defined(__ICC) || defined(__INTEL_COMPILER)
+    #define COMPILER_NAME    "Intel ICC"
+    #define COMPILER_VERSION "Intel Compiler"
+#elif defined(__GNUC__)
+    #define COMPILER_NAME    "GCC"
+    #define COMPILER_VERSION __VERSION__
+#else
+    #define COMPILER_NAME    "Unknown"
+    #define COMPILER_VERSION "Unknown"
+#endif
+
+#ifndef COMPILER_FLAGS
+#define COMPILER_FLAGS "unknown"
+#endif
+
+/* ================= LTO / PGO DETECTION ================= */
+#if defined(__LTO__)
+    #define BUILD_LTO "enabled"
+#else
+    #define BUILD_LTO "disabled"
+#endif
+
+#if defined(__PGO_INSTRUMENT__)
+    #define BUILD_PGO "instrumentation"
+#elif defined(__PGO_USE__)
+    #define BUILD_PGO "optimized"
+#else
+    #define BUILD_PGO "disabled"
+#endif
+
+/* ================= TARGET / ARCH DETECTION ================= */
+#if defined(__clang__)
+    #define TARGET_TRIPLE __TARGET_TRIPLE__
+
+#elif defined(__x86_64__)
+    #define TARGET_TRIPLE "x86_64-linux-gnu"
+#elif defined(__i386__)
+    #define TARGET_TRIPLE "i386-linux-gnu"
+#elif defined(__aarch64__)
+    #define TARGET_TRIPLE "aarch64-linux-gnu"
+#elif defined(__arm__)
+    #define TARGET_TRIPLE "arm-linux-gnueabi"
+#elif defined(__riscv)
+    #define TARGET_TRIPLE "riscv-linux-gnu"
+#elif defined(__powerpc64__)
+    #define TARGET_TRIPLE "powerpc64-linux-gnu"
+#elif defined(__powerpc__)
+    #define TARGET_TRIPLE "powerpc-linux-gnu"
+#else
+    #define TARGET_TRIPLE "unknown-unknown-unknown"
+#endif
+
 /* ================= CONFIG ================= */
-#define VERSION "0.17"
+#define VERSION "0.18"
 #define BUILD_DATE __DATE__ " " __TIME__
 
 /* ================= ANSI COLORS ================= */
@@ -284,8 +360,18 @@ void show_debug() {
     FILE *f = NULL;
     
     printf("CRC Checker.\nCopyright (C) 2026 Ino Jacob. All rights reserved.\n\n");
+    
+    printf(C_RESET "Software Information:\n");
     printf(C_GREEN "Version   : " C_RESET "%s\n", VERSION);
-    printf(C_GREEN "Build Date: " C_RESET "%s\n\n", BUILD_DATE);
+    printf(C_GREEN "Build Date: " C_RESET "%s\n", BUILD_DATE);
+    printf(C_GREEN "Compiler  : " C_RESET "%s\n", COMPILER_NAME);
+    printf(C_GREEN "Comp. Ver.: " C_RESET "%s\n", COMPILER_VERSION);
+    printf(C_GREEN "Flags     : " C_RESET "%s\n", COMPILER_FLAGS);
+    printf(C_GREEN "Target    : " C_RESET "%s\n", TARGET_TRIPLE);
+    printf(C_GREEN "LTO       : " C_RESET "%s\n", BUILD_LTO);
+    printf(C_GREEN "PGO       : " C_RESET "%s\n\n", BUILD_PGO);
+
+    printf(C_RESET "Basic Information:\n");
 
     /* ================= USER / HOST ================= */
     char host[256] = "unknown";
